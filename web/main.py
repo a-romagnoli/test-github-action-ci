@@ -1,7 +1,7 @@
 import os
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify
-from flask.cli import load_dotenv
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -36,4 +36,4 @@ def mongo():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
+    app.run(host="localhost", debug=True)

@@ -1,4 +1,7 @@
+import os
 import unittest
+
+from pymongo import MongoClient
 
 from web.main import app
 
@@ -9,53 +12,43 @@ class FlaskAppTests(unittest.TestCase):
         app.config['TESTING'] = True
         self.app = app.test_client()
 
-    def test_get_hello_endpoint(self):
+        conn_mongo = MongoClient(f'mongodb://{os.getenv("MONGO_HOST")}:27017/')
+        conn_mongo.unittest.stock.insert_one({
+            "store_id": "foo",
+            "material_id": "bar",
+            "quantity": 666,
+            "stock_scenario": "baz"
+        })
+
+    def test_get_home(self):
         r = self.app.get('/')
         self.assertEqual(r.data, b'Hello, World!')
 
-    def test_post_hello_endpoint(self):
+    def test_post_home(self):
         r = self.app.post('/')
         self.assertEqual(r.status_code, 405)
 
+    def test_get_mongo(self):
+        response = self.app.get('/mongo')
 
+        self.assertEqual(
+            200,
+            response.status_code
+        )
+        self.assertEqual(1, len(response.json))
+        self.assertDictEqual(
+            {
+                "store_id": "foo",
+                "material_id": "bar",
+                "quantity": 666,
+                "stock_scenario": "baz"
+            },
+            response.json[0]
+        )
 
-    # def test_get_api_endpoint(self):
-    #     r = self.app.get('/api')
-    #     self.assertEqual(r.json, {'status': 'test'})
-    #
-    # def test_correct_post_api_endpoint(self):
-    #     r = self.app.post('/api',
-    #                       content_type='application/json',
-    #                       data=json.dumps({'name': 'Den', 'age': 100}))
-    #     self.assertEqual(r.json, {'status': 'OK'})
-    #     self.assertEqual(r.status_code, 200)
-    #
-    #     r = self.app.post('/api',
-    #                       content_type='application/json',
-    #                       data=json.dumps({'name': 'Den'}))
-    #     self.assertEqual(r.json, {'status': 'OK'})
-    #     self.assertEqual(r.status_code, 200)
-    #
-    # def test_not_dict_post_api_endpoint(self):
-    #     r = self.app.post('/api',
-    #                       content_type='application/json',
-    #                       data=json.dumps([{'name': 'Den'}]))
-    #     self.assertEqual(r.json, {'status': 'bad input'})
-    #     self.assertEqual(r.status_code, 400)
-    #
-    # def test_no_name_post_api_endpoint(self):
-    #     r = self.app.post('/api',
-    #                       content_type='application/json',
-    #                       data=json.dumps({'age': 100}))
-    #     self.assertEqual(r.json, {'status': 'bad input'})
-    #     self.assertEqual(r.status_code, 400)
-    #
-    # def test_bad_age_post_api_endpoint(self):
-    #     r = self.app.post('/api',
-    #                       content_type='application/json',
-    #                       data=json.dumps({'name': 'Den', 'age': '100'}))
-    #     self.assertEqual(r.json, {'status': 'bad input'})
-    #     self.assertEqual(r.status_code, 400)
+    def tearDown(self):
+        conn_mongo = MongoClient(f'mongodb://{os.getenv("MONGO_HOST")}:27017/')
+        conn_mongo.drop_database('unittest')
 
 
 if __name__ == '__main__':
