@@ -1,0 +1,11 @@
+name: "Mongo"
+description: "Create a MongoDB instance"
+author: "a.romagnoli@reply.it"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+
+branding:
+  icon: "mic"
+  color: "purple"
