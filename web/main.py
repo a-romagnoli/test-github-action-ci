@@ -12,7 +12,7 @@ def home():
 
 @app.route('/query/mongo')
 def mongo():
-    conn_mongo = MongoClient('mongodb://root:Password.1@mongo:27017/')
+    conn_mongo = MongoClient('mongodb://mongo:27017/')
     result = ''
 
     with conn_mongo:
