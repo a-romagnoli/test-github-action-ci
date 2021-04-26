@@ -1,8 +1,13 @@
-from flask import Flask, url_for
+import os
+
+from flask import Flask, jsonify
+from flask.cli import load_dotenv
 from pymongo import MongoClient
 
 app = Flask(__name__)
 app.config['TESTING'] = False
+
+load_dotenv()
 
 
 @app.route('/')
@@ -10,27 +15,24 @@ def home():
     return 'Hello, World!'
 
 
-@app.route('/query/mongo')
+@app.route('/mongo')
 def mongo():
-    conn_mongo = MongoClient('mongodb://mongo:27017/')
-    result = ''
+    conn_mongo = MongoClient(f'mongodb://{os.getenv("MONGO_HOST")}:27017/')
+    payload = []
 
     with conn_mongo:
         stocks = conn_mongo.unittest.stock.find()
 
         for stock in stocks:
-            result += f"<p>" \
-                      f"STORE_ID={stock['store_id']}, " \
-                      f"MATERIAL_ID={stock['material_id']}, " \
-                      f"QUANTITY={stock['quantity']}, " \
-                      f"STOCK_SCENARIO={stock['stock_scenario']}" \
-                      f"</p>"
+            payload.append({
+                'store_id': stock['store_id'],
+                'material_id': stock['material_id'],
+                'quantity': stock['quantity'],
+                'stock_scenario': stock['stock_scenario']
+            })
     conn_mongo.close()
-    result += f"<p>" \
-              f'<a href="{url_for("home")}">Return to Homepage</a>' \
-              f"</p>"
 
-    return result
+    return jsonify(payload)
 
 
 if __name__ == '__main__':
